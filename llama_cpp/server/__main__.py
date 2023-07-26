@@ -28,6 +28,22 @@ import uvicorn
 
 from llama_cpp.server.app import create_app, Settings
 
+parser = argparse.ArgumentParser()
+for name, field in Settings.model_fields.items():
+    description = field.description
+    if field.default is not None and description is not None:
+        description += f" (default: {field.default})"
+    parser.add_argument(
+        f"--{name}",
+        dest=name,
+        type=field.annotation if field.annotation is not None else str,
+        help=description,
+    )
+
+args = parser.parse_args()
+settings = Settings(**{k: v for k, v in vars(args).items() if v is not None})
+app = create_app(settings=settings)
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     for name, field in Settings.model_fields.items():
